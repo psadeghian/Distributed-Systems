@@ -49,7 +49,7 @@ if __name__ == '__main__':
     listOfHostPortTuples = [('',5001),('',5002),('',5003)]
 
     numList = []
-    f = open('/Users/Pasha/CSCI 604/Threading/small_numbers.txt', 'r')
+    f = open('/Users/Pasha/CSCI 604/Threading/Distributed-Systems/small_numbers.txt', 'r')
     for line in f.readlines():
         numList.append(int(line))
     f.close()
@@ -66,6 +66,7 @@ if __name__ == '__main__':
     sorted_list = machine.merge_sort_by_threading(numList, listOfHostPortTuples)
     end = time.time()
     print("Merge Sort By " + str(len(listOfHostPortTuples)) + " machines: " + str((end - start)) + " seconds.",end='\n')
+    print("Sorted " + str(len(sorted_list)) + " items.",end='\n')
     print("First 30 elements of the sorted list:",end='\n')
     print(sorted_list[:30],end='\n')
     print("",end='\n')

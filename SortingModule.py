@@ -74,10 +74,10 @@ if __name__ == '__main__':
         numList.append(int(line))
     f.close()
 
-    print("First 30 elements of the unsorted list to be sorted by Merge Sort By Threading:")
+    print("First 30 elements of the unsorted list to be sorted by Normal Python List Sort:")
     print(numList[:30])
     print("",end='\n')
-    print("Last 30 elements of the unsorted list to be sorted by Merge Sort By Threading:")
+    print("Last 30 elements of the unsorted list to be sorted by Normal Python List Sort:")
     print(numList[-30:])
     print("",end='\n')
     start = start = time.time()
