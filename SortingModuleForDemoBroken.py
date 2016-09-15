@@ -5,28 +5,6 @@ class Sorter:
     def __init__(self):
         self.list_of_sorted_lists = []
 
-    # def merge(*iterables):
-    #     h = []
-    #     for it in map(iter, iterables):
-    #         try:
-    #             next = it.__next__
-    #             h.append([next(), next])
-    #         except StopIteration:
-    #             pass
-    #     heapq.heapify(h)
-    #
-    #     while True:
-    #         try:
-    #             while True:
-    #                 v, next = s = h[0]
-    #                 yield v
-    #                 s[0] = next()
-    #                 heapq._siftup(h, 0)
-    #         except StopIteration:
-    #             heapq.heappop(h)
-    #         except IndexError:
-    #             return
-
     def __chunkify(self, lyst,n):
         if n > len(lyst):
             lenLyst = len(lyst)
@@ -38,9 +16,6 @@ class Sorter:
     def __sortList(self, lyst):
         lyst.sort()
         self.list_of_sorted_lists.append(lyst)
-        print(len(lyst))
-        print(lyst[-20:])
-        print("-------------")
         return lyst
 
     def mergeSortByThreading(self, lyst, numOfThreads):
@@ -63,7 +38,6 @@ class Sorter:
         mergedList = []
 
         chunkedList = self.__chunkify(lyst, numOfProcesses)
-        list_of_sorted_lists = multiprocessing.Value()
         for i in range(numOfProcesses):
             p = multiprocessing.Process(target=self.__sortList, args=(chunkedList[i],))
             processList.append(p)
@@ -83,13 +57,26 @@ if __name__ == '__main__':
         numList.append(int(line))
     f.close()
 
+    print("First 30 elements of the unsorted list to be sorted by Merge Sort By Threading:",end='\n')
+    print(numList[:30],end='\n')
+    print("",end='\n')
+    print("Last 30 elements of the unsorted list to be sorted by Merge Sort By Threading:",end='\n')
+    print(numList[-30:],end='\n')
+    print("",end='\n')
     sorter = Sorter()
     start = start = time.time()
     sorted_list = sorter.mergeSortByThreading(numList, numOfThreads)
-    print(sorted_list[-100:])
     end = end = time.time()
     print("Merge Sort By Threading: " + str((end - start)) + " seconds.")
-    print(str(len(sorted_list)) + " items.")
+    print("Sorted " + str(len(sorted_list)) + " items.")
+    print("First 30 elements of the sorted list:")
+    print(sorted_list[:30],end='\n')
+    print("",end='\n')
+    print("Last 30 elements of the sorted list:",end='\n')
+    print(sorted_list[-30:],end='\n')
+    print("",end='\n')
+
+    print("---------------------------------------",end='\n')
 
     numList = []
     f = open ('numbers.txt', 'r')
@@ -97,13 +84,26 @@ if __name__ == '__main__':
         numList.append(int(line))
     f.close()
 
+    print("First 30 elements of the unsorted list to be sorted by Merge Sort By Multi Processing:",end='\n')
+    print(numList[:30],end='\n')
+    print("",end='\n')
+    print("Last 30 elements of the unsorted list to be sorted by Merge Sort By Multi Processing:",end='\n')
+    print(numList[-30:],end='\n')
+    print("",end='\n')
     sorter = Sorter()
     start = start = time.time()
     sorted_list = sorter.mergeSortByMultiProcessing(numList, numOfThreads)
-    print(sorted_list[-100:])
     end = end = time.time()
     print("Merge Sort By Multi Processing: " + str((end - start)) + " seconds.")
-    print(str(len(sorted_list)) + " items.")
+    print("Sorted " + str(len(sorted_list)) + " items.")
+    print("First 30 elements of the sorted list:")
+    print(sorted_list[:30],end='\n')
+    print("",end='\n')
+    print("Last 30 elements of the sorted list:",end='\n')
+    print(sorted_list[-30:],end='\n')
+    print("",end='\n')
+
+    print("---------------------------------------",end='\n')
 
     numList = []
     f = open ('numbers.txt', 'r')
@@ -111,10 +111,21 @@ if __name__ == '__main__':
         numList.append(int(line))
     f.close()
 
+    print("First 30 elements of the unsorted list to be sorted by Normal Python List Sort:")
+    print(numList[:30])
+    print("",end='\n')
+    print("Last 30 elements of the unsorted list to be sorted by Normal Python List Sort:")
+    print(numList[-30:])
+    print("",end='\n')
     start = start = time.time()
     numList.sort()
     sorted_list = numList
-    print(sorted_list[-100:])
     end = end = time.time()
-    print("Normal Python List Sort: " + str((end - start)) + " seconds.")
-    print(str(len(sorted_list)) + " items.")
+    print("Normal Python List Sort: " + str((end - start)) + " seconds.",end='\n')
+    print("Sorted " + str(len(sorted_list)) + " items.",end='\n')
+    print("First 30 elements of the sorted list:",end='\n')
+    print(sorted_list[:30],end='\n')
+    print("",end='\n')
+    print("Last 30 elements of the sorted list:",end='\n')
+    print(sorted_list[-30:],end='\n')
+    print("",end='\n')
