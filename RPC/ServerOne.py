@@ -1,7 +1,7 @@
 from xmlrpc.server import SimpleXMLRPCServer
 
 # Create server
-HOST = "localhost"
+HOST = "10.0.2.2"
 PORT = 5001
 server = SimpleXMLRPCServer((HOST, PORT))
 server.register_introspection_functions()

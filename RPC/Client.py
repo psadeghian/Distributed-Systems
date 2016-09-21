@@ -15,6 +15,7 @@ class Client:
 
     def __conn_sen_rec(self, host, port, lyst):
         with xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/") as proxy:
+            # "http://" +
             sorted_list = proxy.sort(lyst)
         self.list_of_sorted_lists.append(sorted_list)
         return lyst
@@ -36,8 +37,7 @@ class Client:
         return mergedList
 
 if __name__ == '__main__':
-    listOfHostPortTuples = [('',5001),('',5002),('',5003)]
-
+    listOfHostPortTuples = [('127.0.0.1',5001),('127.0.0.1',5002),('127.0.0.1',5003)]
     num_list = []
     f = open('small_numbers.txt', 'r')
     for line in f.readlines():

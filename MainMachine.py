@@ -46,8 +46,8 @@ class MainMachine:
         return mergedList
 
 if __name__ == '__main__':
-    listOfHostPortTuples = [('',5001),('',5002),('',5003)]
-
+    listOfHostPortTuples = [('',5001)]
+    # ,('',5002),('',5003)
     numList = []
     f = open('/Users/Pasha/CSCI 604/Threading/Distributed-Systems/small_numbers.txt', 'r')
     for line in f.readlines():
