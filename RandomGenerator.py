@@ -9,7 +9,7 @@ def main():
 
     infile = open ('small_numbers.txt', 'w')
 
-    for n in range(1,howMany):
+    for n in range(1,howMany+1):
         numbers.append(random.randint(1,1000))
     infile.write('\n'.join(map(str, numbers)))
     infile.close()

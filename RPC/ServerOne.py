@@ -5,7 +5,7 @@ HOST = "0.0.0.0"
 # 10.0.2.2
 PORT = 5001
 server = SimpleXMLRPCServer((HOST, PORT))
-server.register_introspection_functions()
+#server.register_introspection_functions()
 
 # Register an instance; all the methods of the instance are
 # published as XML-RPC methods (in this case, just 'sort').
