@@ -125,6 +125,7 @@ def client_main_loop(checking_interval):
                         port = machines[index][1]
                         with xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/") as proxy:
                             returned_node = proxy.get_node()
+                        print(returned_node)
                         print("everything cool!")
                     except ConnectionRefusedError:
                         print(sys.exc_info()[0])

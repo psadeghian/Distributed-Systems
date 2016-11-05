@@ -7,7 +7,7 @@ def main():
 
     howMany = int(input('How many numbers would you like to generate?: '))
 
-    infile = open ('small_numbers.txt', 'w')
+    infile = open ('test_th.txt', 'w')
 
     for n in range(1,howMany+1):
         numbers.append(random.randint(1,1000))
