@@ -3,12 +3,21 @@ import xmlrpc.client, sys, os
 
 HOST = "0.0.0.0"
 PORT = 6001
+ID = 1
 server = SimpleXMLRPCServer((HOST, PORT))
 server.register_introspection_functions()
 
 class RemoteFunctions:
-    def put_on_server(self, encoded):
-        with open("temp/temp.txt", "wb") as handle:
+    def __init__(self):
+        self.id = ID
+
+    def get_id(self):
+        return self.id
+
+    def put_on_server(self, encoded, file_name):
+        path = "data_directory/" + file_name
+        print(path)
+        with open(path, "wb") as handle:
             handle.write(encoded.data)
             return "Done"
 
@@ -19,6 +28,10 @@ class RemoteFunctions:
     def remove(self,path):
         os.remove(path)
         return "File removed"
+
+    def copy(self,path):
+        return "Not working yet"
+
 server.register_instance(RemoteFunctions())
 print("Server 1 is listening at " + str(server.server_address[0])+ ":" + str(server.server_address[1]))
 server.serve_forever()
