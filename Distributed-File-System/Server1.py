@@ -32,6 +32,11 @@ class RemoteFunctions:
     def copy(self,path):
         return "Not working yet"
 
+    def size(self):
+        value = os.path.getsize("data_directory/small_numbers.txt")
+        return value
+
+
 server.register_instance(RemoteFunctions())
 print("Server 1 is listening at " + str(server.server_address[0])+ ":" + str(server.server_address[1]))
 server.serve_forever()

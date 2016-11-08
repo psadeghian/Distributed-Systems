@@ -1,86 +1,144 @@
-import xmlrpc.client, sys
+import xmlrpc.client, sys, pymysql
+class Client:
 
-directory_list = []
-directory_list.append("user/")
+    def __init__(self):
+        pass
+        self.directory_dict = {}
+        self.last_file_name = -1
+        self.file_node_map = {}
 
-def implement_put(host, port, file_addr):
-    try:
-        proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
-        with open(file_addr, "rb") as handle:
-            file_name = handle.name
-            binary_data = xmlrpc.client.Binary(handle.read())
-            message = proxy.put_on_server(binary_data, file_name)
-        return message
-    except:
-        error_message = sys.exc_info()[0]
-        return error_message
+        self.cd_list = []
+        self.host_port_tuples_list = [('127.0.0.1',6001)]
+        #,('127.0.0.1',6002),('127.0.0.1',6003)
+        self.command_dict = {"mkdir": Client.mkdir, "rm": Client.rm, "cp": Client.cp, "put": Client.put, "get": Client.get, "ls": Client.ls, "help": Client.help, "cd": Client.cd, "": Client.empty}
 
-def implement_get(host, port, file_addr_on_server, file_addr_on_client):
-    try:
-        proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
-        with open(file_addr_on_client, "wb") as handle:
-            handle.write(proxy.return_get(file_addr_on_server).data)
-        message = "Done"
-        return message
-    except:
-        error_message = sys.exc_info()[1]
-        return error_message
+    def implement_put(self, host, port, file_addr):
+        try:
+            proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
+            with open(file_addr, "rb") as handle:
+                file_name = handle.name
+                binary_data = xmlrpc.client.Binary(handle.read())
+                message = proxy.put_on_server(binary_data, file_name)
+            return message
+        except:
+            error_message = sys.exc_info()[0]
+            return error_message
 
-def implement_remove(host, port, path):
-    try:
-        proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
-        message = proxy.remove(path)
-        return message
-    except:
-        error_message = sys.exc_info()[1]
-        return error_message
+    def implement_get(self, host, port, file_addr_on_server, file_addr_on_client):
+        try:
+            proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
+            with open(file_addr_on_client, "wb") as handle:
+                handle.write(proxy.return_get(file_addr_on_server).data)
+            message = "Done"
+            return message
+        except:
+            error_message = sys.exc_info()[1]
+            return error_message
 
-def implement_copy(host, port, path):
-    try:
-        proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
-        message = proxy.copy(path)
-        return message
-    except:
-        error_message = sys.exc_info()[1]
-        return error_message
+    def implement_remove(self, host, port, path):
+        try:
+            proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
+            message = proxy.remove(path)
+            return message
+        except:
+            error_message = sys.exc_info()[1]
+            return error_message
 
-def mkdir(directory):
-    print("Created directory: " + directory)
+    def implement_copy(self, host, port, path):
+        try:
+            proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
+            message = proxy.copy(path)
+            return message
+        except:
+            error_message = sys.exc_info()[1]
+            return error_message
 
-def rm(path):
-    print("Removed: " + path)
+    def mkdir(self, directory):
+        directory = directory.strip()
+        temp_dir_list = directory.split("/")
+        temp_cd_dict = self.directory_dict
+        if self.cd_list != []:
+            for dir in self.cd_list:
+                temp_cd_dict = temp_cd_dict[dir]
+        for dir in temp_dir_list:
+            if temp_cd_dict.get(dir) == None:
+                temp_cd_dict[dir] = {}
+                temp_cd_dict = temp_cd_dict[dir]
+            else:
+                temp_cd_dict = temp_cd_dict[dir]
 
-def cp(local_path, distributed_path):
-    print("Copied from " + local_path + " to " + distributed_path)
+    def rm(self, path):
+        print("Removed: " + path)
 
-def put():
-    pass
+    def cp(self, local_path, distributed_path):
+        print("Copied from " + local_path + " to " + distributed_path)
 
-def get():
-    pass
+    def put(self, local_):
+        pass
 
-def ls():
-    pass
+    def get(self):
+        pass
 
-def help():
-    pass
+    def ls(self):
+        temp_dir_dict = self.directory_dict
+        for dir in self.cd_list:
+            temp_dir_dict = temp_dir_dict[dir]
+        for key in temp_dir_dict.keys():
+            print(key)
 
-def cd():
-    pass
+        print(self.directory_dict)
 
-host_port_tuples_list = [('127.0.0.1',6001)]
-#,('127.0.0.1',6002),('127.0.0.1',6003)
+    def help(self):
+        for key in self.command_dict:
+            print(key)
+        # needs more work, perhaps read a help.text file to the user
 
-#print(implement_put(host_port_tuples_list[0][0],host_port_tuples_list[0][1],"small_numbers.txt"))
-#print(implement_put(host_port_tuples_list[0][0],host_port_tuples_list[0][1],"small_numbers.txt"))
-#print(implement_get(host_port_tuples_list[0][0],host_port_tuples_list[0][1],"temp/temp.txt","test_numbers.txt"))
-#print(implement_remove(host_port_tuples_list[0][0],host_port_tuples_list[0][1],"temp/temp.txt"))
+    def cd(self, directory=None):
+        temp_cd_dict = self.directory_dict
+        temp_cd_list = self.cd_list.copy()
+        if directory == None:
+            temp_cd_list.clear()
+        else:
+            directory = directory.strip()
+            if directory == "..":
+                try:
+                    temp_cd_list(-1)
+                except:
+                    pass
+            else:
+                temp_dir_list = directory.split("/")
+                for dir in temp_dir_list:
+                    temp_cd_list.append(dir)
+        for dir in temp_cd_list:
+            temp_cd_dict = temp_cd_dict[dir]
+        self.cd_list = temp_cd_list
 
-for i in range(1):
-    command_dict = {"mkdir": mkdir, "rm": rm, "cp": cp, "put": put, "get": get, "ls": ls, "help": help, "cd": cd}
-    command = input("Type your command: ").strip()
-    command_list = command.split(" ")
-    foo = command_dict[command_list.pop(0)]
-    foo(*command_list)
+    def empty(self):
+        pass
 
+def main():
+    machine = Client()
+    while 1 == 1:
+        if machine.cd_list == []:
+            current_directory_string = "home $"
+        else:
+            current_directory_string = machine.cd_list[-1] + " $"
+
+        try:
+            command = input("Type your command:" + current_directory_string).strip()
+            if command == "exit":
+                break
+            command_list = command.split(" ")
+            foo = machine.command_dict[command_list.pop(0)]
+            command_list.insert(0,machine)
+            foo(*command_list)
+        except:
+            error_message = sys.exc_info()
+            print(error_message)
+
+        proxy = xmlrpc.client.ServerProxy("http://" + '127.0.0.1' + ":" + str(6001) + "/")
+        message = proxy.size()
+        print(message)
+
+if __name__ == "__main__": main()
 
