@@ -39,7 +39,7 @@ class Client:
 if __name__ == '__main__':
     listOfHostPortTuples = [('127.0.0.1',5001),('127.0.0.1',5002),('127.0.0.1',5003)]
     num_list = []
-    f = open('small_numbers.txt', 'r')
+    f = open('small_numbers11.txt', 'r')
     for line in f.readlines():
         num_list.append(int(line))
     f.close()

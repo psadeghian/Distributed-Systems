@@ -1,5 +1,5 @@
 from xmlrpc.server import SimpleXMLRPCServer
-import xmlrpc.client, sys, os
+import xmlrpc.client, sys, os, pymysql
 
 HOST = "0.0.0.0"
 PORT = 6001
@@ -14,29 +14,59 @@ class RemoteFunctions:
     def get_id(self):
         return self.id
 
-    def put_on_server(self, encoded, file_name):
-        path = "data_directory/" + file_name
-        print(path)
-        with open(path, "wb") as handle:
-            handle.write(encoded.data)
-            return "Done"
+    def put(self, binary_data, file_id, file_name, file_size):
+        # connect to the databse
+        connection = pymysql.connect(host='localhost',
+                                     user='root',
+                                     password='',
+                                     db='dfs',
+                                     charset='utf8mb4',
+                                     cursorclass=pymysql.cursors.DictCursor)
+        try:
+            with connection.cursor() as cursor:
+                # create a new record
+                sql = "INSERT INTO machine_1 (file_id, file_name, file, file_size) VALUES (%s, %s, %s, %s)"
+                binary_data = binary_data.data
+                cursor.execute(sql, (file_id, file_name, binary_data, file_size))
+            # connection is not autocommit by default. So you must commit to save
+            # your changes.
+            connection.commit()
+        finally:
+            connection.close()
 
-    def return_get(self, file_addr):
-        with open(file_addr, "rb") as handle:
-            return xmlrpc.client.Binary(handle.read())
+        return "Done"
+
+    # def return_get(self, file_addr):
+    #     with open(file_addr, "rb") as handle:
+    #         return xmlrpc.client.Binary(handle.read())
+
+    def get(self, file_id):
+        # connect to the databse
+        connection = pymysql.connect(host='localhost',
+                                     user='root',
+                                     password='',
+                                     db='dfs',
+                                     charset='utf8mb4',
+                                     cursorclass=pymysql.cursors.DictCursor)
+        try:
+            with connection.cursor() as cursor:
+                # create a new record
+                sql = "SELECT `file` FROM `machine_1` WHERE `file_id` = %s"
+                cursor.execute(sql, (file_id,))
+                result = cursor.fetchone()
+                file = result["file"]
+        finally:
+            connection.close()
+
+        return file
 
     def remove(self,path):
-        os.remove(path)
-        return "File removed"
+        return "Not working yet"
 
     def copy(self,path):
         return "Not working yet"
 
-    def size(self):
-        value = os.path.getsize("data_directory/small_numbers.txt")
-        return value
-
 
 server.register_instance(RemoteFunctions())
-print("Server 1 is listening at " + str(server.server_address[0])+ ":" + str(server.server_address[1]))
+print("Server" + str(ID) + " is listening at " + str(server.server_address[0])+ ":" + str(server.server_address[1]))
 server.serve_forever()

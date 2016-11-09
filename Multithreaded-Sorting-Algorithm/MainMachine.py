@@ -49,7 +49,7 @@ if __name__ == '__main__':
     listOfHostPortTuples = [('',5001)]
     # ,('',5002),('',5003)
     numList = []
-    f = open('/Users/Pasha/CSCI 604/Threading/Distributed-Systems/small_numbers.txt', 'r')
+    f = open('/Users/Pasha/CSCI 604/Threading/Distributed-Systems/small_numbers11.txt', 'r')
     for line in f.readlines():
         numList.append(int(line))
     f.close()
