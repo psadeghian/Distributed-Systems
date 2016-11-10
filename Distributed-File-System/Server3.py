@@ -25,9 +25,9 @@ class RemoteFunctions:
         try:
             with connection.cursor() as cursor:
                 # create a new record
-                sql = "INSERT INTO machine_3 (file_id, file_name, file, file_size) VALUES (%s, %s, %s, %s)"
+                sql = "INSERT INTO machine_%s (file_id, file_name, file, file_size) VALUES (%s, %s, %s, %s)"
                 binary_data = binary_data.data
-                cursor.execute(sql, (file_id, file_name, binary_data, file_size))
+                cursor.execute(sql, (ID, file_id, file_name, binary_data, file_size))
             # connection is not autocommit by default. So you must commit to save
             # your changes.
             connection.commit()
@@ -51,8 +51,8 @@ class RemoteFunctions:
         try:
             with connection.cursor() as cursor:
                 # create a new record
-                sql = "SELECT `file` FROM `machine_3` WHERE `file_id` = %s"
-                cursor.execute(sql, (file_id,))
+                sql = "SELECT `file` FROM `machine_%s` WHERE `file_id` = %s"
+                cursor.execute(sql, (ID, file_id,))
                 result = cursor.fetchone()
                 file = result["file"]
         finally:
