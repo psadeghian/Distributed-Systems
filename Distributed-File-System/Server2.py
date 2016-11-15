@@ -7,7 +7,9 @@ ID = 2
 server = SimpleXMLRPCServer((HOST, PORT))
 server.register_introspection_functions()
 
+
 class RemoteFunctions:
+
     def __init__(self):
         self.id = ID
 
@@ -36,10 +38,6 @@ class RemoteFunctions:
 
         return "Done"
 
-    # def return_get(self, file_addr):
-    #     with open(file_addr, "rb") as handle:
-    #         return xmlrpc.client.Binary(handle.read())
-
     def get(self, file_id):
         # connect to the databse
         connection = pymysql.connect(host='localhost',
@@ -52,7 +50,7 @@ class RemoteFunctions:
             with connection.cursor() as cursor:
                 # create a new record
                 sql = "SELECT `file` FROM `machine_%s` WHERE `file_id` = %s"
-                cursor.execute(sql, (ID, file_id,))
+                cursor.execute(sql, (ID, file_id))
                 result = cursor.fetchone()
                 file = result["file"]
         finally:
@@ -60,8 +58,22 @@ class RemoteFunctions:
 
         return file
 
-    def remove(self,path):
-        return "Not working yet"
+    def remove(self, file_id):
+        connection = pymysql.connect(host='localhost',
+                                     user='root',
+                                     password='',
+                                     db='dfs',
+                                     charset='utf8mb4',
+                                     cursorclass=pymysql.cursors.DictCursor)
+        try:
+            with connection.cursor() as cursor:
+                # create a new record
+                sql = "DELETE FROM `machine_%s` WHERE `file_id` = %s"
+                cursor.execute(sql, (ID, file_id))
+            connection.commit()
+        finally:
+            connection.close()
+        return "Done"
 
     def copy(self,path):
         return "Not working yet"

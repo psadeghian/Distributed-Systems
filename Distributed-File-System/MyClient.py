@@ -1,4 +1,6 @@
 import xmlrpc.client, sys, pymysql, os
+
+
 class Client:
 
     def __init__(self):
@@ -98,11 +100,60 @@ class Client:
 
         elif path_or_r == "-r" and path_or_none is not None:
             self.__cd(path_or_none)
-            initial_dir_list = []
-            final_dir_list = []
-            file_list = []
 
-            initial_dir_list.append({'level': self.level, 'dir_name': self.current_dir, 'parent': self.parent})
+            parent_address_list = self.current_dir_address.split("/")
+            parent_address_list.pop(-2)
+            parent_address = "/".join(parent_address_list)
+            len_current_dir_address = len(self.current_dir_address)
+
+            connection = pymysql.connect(host='localhost',
+                                         user='root',
+                                         password='',
+                                         db='dfs',
+                                         charset='utf8mb4',
+                                         cursorclass=pymysql.cursors.DictCursor)
+
+            try:
+
+                with connection.cursor() as cursor:
+                    sql = "DELETE FROM `dir_map` WHERE `dir_name` = %s AND `address` = %s"
+                    cursor.execute(sql, (self.current_dir, parent_address))
+                connection.commit()
+
+                with connection.cursor() as cursor:
+                    sql = "DELETE FROM `dir_map` WHERE `level` > %s AND LEFT(`address`, %s) = %s"
+                    cursor.execute(sql, (self.level, len_current_dir_address, self.current_dir_address))
+                connection.commit()
+
+                with connection.cursor() as cursor:
+                    sql = "SELECT `file_id`, `machine_id` FROM `file_map` WHERE `level` > %s AND " \
+                          "LEFT(`address`, %s) = %s"
+                    cursor.execute(sql, (self.level, len_current_dir_address, self.current_dir_address))
+                    row = cursor.fetchone()
+                    while row is not None:
+                        host = self.machine_dict[row['machine_id']][0]
+                        port = self.machine_dict[row['machine_id']][1]
+                        file_id = row['file_id']
+                        proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
+                        message = proxy.remove(file_id)
+                        row = cursor.fetchone()
+
+                with connection.cursor() as cursor:
+                    sql = "DELETE FROM `file_map` WHERE `level` > %s AND " \
+                          "LEFT(`address`, %s) = %s"
+                    cursor.execute(sql, (self.level, len_current_dir_address, self.current_dir_address))
+                connection.commit()
+
+            finally:
+                connection.close()
+        else:
+            path = path_or_r
+            path_list = path.split("/")
+            file_name = path_list.pop(-1)
+            path = "/".join(path_list)
+            if path != "":
+                self.__cd(path)
+
             connection = pymysql.connect(host='localhost',
                                          user='root',
                                          password='',
@@ -110,30 +161,27 @@ class Client:
                                          charset='utf8mb4',
                                          cursorclass=pymysql.cursors.DictCursor)
             try:
-                while len(initial_dir_list) > 0:
-                    dir_dict = initial_dir_list.pop(0)
-                    final_dir_list.append(dir_dict)
-                    level = dir_dict['level']
-                    dir_name = dir_dict['dir_name']
-                    #parent = dir_dict['parent']
-                    with connection.cursor() as cursor:
-                        sql = "SELECT `level`, `dir_name`, `parent` FROM `dir_map` WHERE `level` " \
-                              "= %s AND `parent` = %s"
-                        cursor.execute(sql, (level + 1, dir_name))
-                        row = cursor.fetchone()
-                        while row is not None:
-                            initial_dir_list.append(row)
-                            row = cursor.fetchone()
+                with connection.cursor() as cursor:
+                    sql = "SELECT `file_id`, `machine_id` FROM `file_map` WHERE `file_name` = %s AND " \
+                          "`address` = %s"
+                    cursor.execute(sql, (file_name, self.current_dir_address))
+                    row = cursor.fetchone()
+
+                    if row is not None:
+                        host = self.machine_dict[row['machine_id']][0]
+                        port = self.machine_dict[row['machine_id']][1]
+                        file_id = row['file_id']
+                        proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
+                        message = proxy.remove(file_id)
+
+                        sql = "DELETE FROM `file_map` WHERE `file_id` = %s"
+                        cursor.execute(sql, (file_id,))
+                        connection.commit()
+
             finally:
                 connection.close()
-            print(final_dir_list)
-        else:
-            path = path_or_r
-            path_list = path.split("/")
-            file_name = path_list.pop(-1)
-            path = "/".join(path_list)
-            if path == "":
-                pass
+
+
 
         self.level = original_level
         self.parent = original_parent
@@ -142,7 +190,7 @@ class Client:
         print("Done")
 
     def __cp(self, local_path, distributed_path):
-        print("Copied from " + local_path + " to " + distributed_path)
+        print("Not working")
 
     def __put(self, local_path, distributed_path):
         original_level = self.level
@@ -162,15 +210,14 @@ class Client:
                                      cursorclass=pymysql.cursors.DictCursor)
         try:
             with connection.cursor() as cursor:
-                sql = "SELECT MIN(`sum_file_size`) AS `min_file_size` FROM (SELECT SUM(`file_size`) AS `sum_file_size` " \
-                      "FROM `file_map` GROUP BY `machine_id`) `T2`"
+                sql = "SELECT MIN(`sum_file_size`) AS `min_file_size` FROM (SELECT SUM(`file_size`) AS " \
+                      "`sum_file_size` FROM `file_map` GROUP BY `machine_id`) `T2`"
                 cursor.execute(sql, ())
                 result = cursor.fetchone()
-                print(result)
                 min_file_size = result['min_file_size']
 
-                sql = "SELECT `machine_id` FROM (SELECT `machine_id`, SUM(`file_size`) AS `sum_file_size` FROM `file_map` GROUP BY `machine_id`) T2 WHERE T2.sum_file_size = %s"
-                print(sql)
+                sql = "SELECT `machine_id` FROM (SELECT `machine_id`, SUM(`file_size`) AS `sum_file_size` " \
+                      "FROM `file_map` GROUP BY `machine_id`) T2 WHERE T2.sum_file_size = %s"
                 cursor.execute(sql, (min_file_size,))
                 result = cursor.fetchone()
 
@@ -180,7 +227,6 @@ class Client:
                 cursor.execute(sql, ())
                 result = cursor.fetchone()
                 file_id = result['file_id'] + 1
-                print("File id is "+ str(file_id))
 
         finally:
             connection.close()
@@ -267,7 +313,33 @@ class Client:
         print("Done")
 
     def __ls(self):
-        pass
+        content = []
+        connection = pymysql.connect(host='localhost',
+                             user='root',
+                             password='',
+                             db='dfs',
+                             charset='utf8mb4',
+                             cursorclass=pymysql.cursors.DictCursor)
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT `dir_name` FROM `dir_map` WHERE `address` = %s"
+                cursor.execute(sql, (self.current_dir_address,))
+                row = cursor.fetchone()
+                while row is not None:
+                    content.append(row['dir_name'])
+                    row = cursor.fetchone()
+
+                sql = "SELECT `file_name` FROM `file_map` WHERE `address` = %s"
+                cursor.execute(sql, (self.current_dir_address,))
+                row = cursor.fetchone()
+                while row is not None:
+                    content.append(row['file_name'])
+                    row = cursor.fetchone()
+        finally:
+            connection.close()
+
+        for item in content:
+            print(item)
 
     def __help(self):
         for key in self.command_dict:
@@ -294,6 +366,7 @@ class Client:
                     if self.level == 1:
                         self.level = 0
                         self.parent = 'home'
+                        self.current_dir = 'home'
                         self.current_dir_address = 'home/'
                 else:
                     # connect to the databse
@@ -351,8 +424,8 @@ class Client:
 
                         with connection.cursor() as cursor:
                             # create a new record
-                            sql = "SELECT `level`, `parent`, `dir_name` FROM `dir_map` WHERE `level` = %s AND `dir_name` = %s AND `address` = %s"
-                            cursor.execute(sql, (str(level + 1), temp_dir_list[i], address))
+                            sql = "SELECT `level`, `parent`, `dir_name` FROM (SELECT `level`, `parent`, `dir_name` FROM `dir_map` WHERE `address` = %s) `T2` WHERE `dir_name` = %s"
+                            cursor.execute(sql, (address, temp_dir_list[i]))
                             result = cursor.fetchone()
                             level, parent, dir_name = result['level'], result['parent'], result['dir_name']
                             address = address + temp_dir_list[i] + "/"
@@ -364,7 +437,7 @@ class Client:
 
                 except:
                     raise
-        print(self.current_dir_address)
+
     def empty(self):
         pass
 
