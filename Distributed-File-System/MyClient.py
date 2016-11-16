@@ -1,15 +1,15 @@
-import xmlrpc.client, sys, pymysql, os
+import xmlrpc.client, pymysql, os, warnings
 
 
 class Client:
 
     def __init__(self):
-        self.server_host = 'localhost'
-        self.server_user = 'root'
-        self.server_pass = ''
-        self.server_db = 'dfs'
+        self.__server_host = 'localhost'
+        self.__server_user = 'root'
+        self.__server_pass = ''
+        self.__server_db = 'dfs'
         # --------------------------------------------------------------------------------------------------------------
-        self.machine_dict = {1: ('127.0.0.1', 6001), 2: ('127.0.0.1', 6002), 3: ('127.0.0.1', 6003)}
+        self.__machine_dict = {1: ('127.0.0.1', 6001), 2: ('127.0.0.1', 6002), 3: ('127.0.0.1', 6003)}
         # --------------------------------------------------------------------------------------------------------------
         self.__level = 0
         self.__parent = 'home'
@@ -19,9 +19,59 @@ class Client:
                              "cd": Client.__cd, "": Client.empty}
         self.__current_dir_address = "home/"
 
+    def __format(self, locally=None):
+        # if locally = "locally" then formatting will assume that the client and servers are running on a single
+        # machine.
+        if locally is None:
+            locally = "none"
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            connection = pymysql.connect(host=self.__server_host, user=self.__server_user, password=self.__server_pass)
+            with connection.cursor() as cursor:
+                sql = "DROP DATABASE IF EXISTS "
+                sql = sql + self.__server_db
+                cursor.execute(sql)
 
+                sql = "CREATE DATABASE "
+                sql = sql + self.__server_db
+                cursor.execute(sql)
+            connection.commit()
+        # connect to the database
+        connection = pymysql.connect(host=self.__server_host,
+                                     user=self.__server_user,
+                                     password=self.__server_pass,
+                                     db=self.__server_db,
+                                     charset='utf8mb4',
+                                     cursorclass=pymysql.cursors.DictCursor)
+        with connection.cursor() as cursor:
+            sql = "CREATE TABLE `file_map` (`file_id` INT NOT NULL PRIMARY KEY, `file_name` VARCHAR(30) NOT NULL," \
+                  " `address` VARCHAR(100) NOT NULL, `machine_id` INT NOT NULL, `file_size` INT NOT NULL," \
+                  " `parent` VARCHAR(20) NOT NULL, `level` INT NOT NULL, UNIQUE (`file_name`, `address`))"
+            cursor.execute(sql, ())
 
-    def __format(self):
+            sql = "CREATE TABLE `dir_map` (`level` INT NOT NULL, `dir_name` VARCHAR(20) NOT NULL," \
+                  " `parent` VARCHAR(20) NOT NULL, `address` VARCHAR(100) NOT NULL," \
+                  " PRIMARY KEY (`dir_name`, `address`))"
+            cursor.execute(sql, ())
+
+            dummy_count = 0
+            for machine_id in self.__machine_dict.keys():
+                sql = "INSERT INTO `file_map` (`file_id`, `file_name`, `address`, `machine_id`, `file_size`," \
+                      " `parent`, `level`) VALUES (%s, %s, '-1', %s, '0', '-1', '-1')"
+                if dummy_count == 0:
+                    file_id = 0
+                else:
+                    file_id = -1 * machine_id
+                file_name = -1 * machine_id
+                cursor.execute(sql, (file_id, file_name, machine_id))
+                host = self.__machine_dict[machine_id][0]
+                port = self.__machine_dict[machine_id][1]
+                proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
+                message = proxy.format(self.__server_db, locally)
+
+                dummy_count = dummy_count+1
+
+        connection.commit()
 
         print("Your client and servers have been formatted")
 
@@ -33,10 +83,10 @@ class Client:
         temp_dir_list = directory.split("/")
 
         # connect to the database
-        connection = pymysql.connect(host=self.server_host,
-                                     user=self.server_user,
-                                     password=self.server_pass,
-                                     db=self.server_db,
+        connection = pymysql.connect(host=self.__server_host,
+                                     user=self.__server_user,
+                                     password=self.__server_pass,
+                                     db=self.__server_db,
                                      charset='utf8mb4',
                                      cursorclass=pymysql.cursors.DictCursor)
         parent = self.__parent
@@ -82,10 +132,10 @@ class Client:
             parent_address = "/".join(parent_address_list)
             len_current_dir_address = len(self.__current_dir_address)
 
-            connection = pymysql.connect(host=self.server_host,
-                                         user=self.server_user,
-                                         password=self.server_pass,
-                                         db=self.server_db,
+            connection = pymysql.connect(host=self.__server_host,
+                                         user=self.__server_user,
+                                         password=self.__server_pass,
+                                         db=self.__server_db,
                                          charset='utf8mb4',
                                          cursorclass=pymysql.cursors.DictCursor)
             try:
@@ -106,11 +156,11 @@ class Client:
                     cursor.execute(sql, (self.__level, len_current_dir_address, self.__current_dir_address))
                     row = cursor.fetchone()
                     while row is not None:
-                        host = self.machine_dict[row['machine_id']][0]
-                        port = self.machine_dict[row['machine_id']][1]
+                        host = self.__machine_dict[row['machine_id']][0]
+                        port = self.__machine_dict[row['machine_id']][1]
                         file_id = row['file_id']
                         proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
-                        message = proxy.remove(file_id)
+                        message = proxy.remove(file_id, self.__server_db)
                         row = cursor.fetchone()
 
                 with connection.cursor() as cursor:
@@ -129,10 +179,10 @@ class Client:
             if path != "":
                 self.__cd(path)
 
-            connection = pymysql.connect(host=self.server_host,
-                                         user=self.server_user,
-                                         password=self.server_pass,
-                                         db=self.server_db,
+            connection = pymysql.connect(host=self.__server_host,
+                                         user=self.__server_user,
+                                         password=self.__server_pass,
+                                         db=self.__server_db,
                                          charset='utf8mb4',
                                          cursorclass=pymysql.cursors.DictCursor)
             try:
@@ -143,11 +193,11 @@ class Client:
                     row = cursor.fetchone()
 
                     if row is not None:
-                        host = self.machine_dict[row['machine_id']][0]
-                        port = self.machine_dict[row['machine_id']][1]
+                        host = self.__machine_dict[row['machine_id']][0]
+                        port = self.__machine_dict[row['machine_id']][1]
                         file_id = row['file_id']
                         proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
-                        message = proxy.remove(file_id)
+                        message = proxy.remove(file_id, self.__server_db)
 
                         sql = "DELETE FROM `file_map` WHERE `file_id` = %s"
                         cursor.execute(sql, (file_id,))
@@ -176,10 +226,10 @@ class Client:
         # and choose a file id for the file
 
         # connect to the database
-        connection = pymysql.connect(host=self.server_host,
-                                     user=self.server_user,
-                                     password=self.server_pass,
-                                     db=self.server_db,
+        connection = pymysql.connect(host=self.__server_host,
+                                     user=self.__server_user,
+                                     password=self.__server_pass,
+                                     db=self.__server_db,
                                      charset='utf8mb4',
                                      cursorclass=pymysql.cursors.DictCursor)
         try:
@@ -213,16 +263,16 @@ class Client:
             self.__cd(distributed_path)
 
         file_size = os.path.getsize(local_path)
-        host = self.machine_dict[machine_id][0]
-        port = self.machine_dict[machine_id][1]
+        host = self.__machine_dict[machine_id][0]
+        port = self.__machine_dict[machine_id][1]
         proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
         with open(local_path, "rb") as handle:
             binary_data = xmlrpc.client.Binary(handle.read())
 
-            connection = pymysql.connect(host=self.server_host,
-                                         user=self.server_user,
-                                         password=self.server_pass,
-                                         db=self.server_db,
+            connection = pymysql.connect(host=self.__server_host,
+                                         user=self.__server_user,
+                                         password=self.__server_pass,
+                                         db=self.__server_db,
                                          charset='utf8mb4',
                                          cursorclass=pymysql.cursors.DictCursor)
 
@@ -239,7 +289,7 @@ class Client:
             finally:
                 connection.close()
 
-            message = proxy.put(binary_data, file_id, file_name, file_size)
+            message = proxy.put(binary_data, file_id, file_name, file_size, self.__server_db)
 
         self.__level = original_level
         self.__parent = original_parent
@@ -261,10 +311,10 @@ class Client:
         if distributed_path != "":
             self.__cd(distributed_path)
 
-        connection = pymysql.connect(host=self.server_host,
-                                     user=self.server_user,
-                                     password=self.server_pass,
-                                     db=self.server_db,
+        connection = pymysql.connect(host=self.__server_host,
+                                     user=self.__server_user,
+                                     password=self.__server_pass,
+                                     db=self.__server_db,
                                      charset='utf8mb4',
                                      cursorclass=pymysql.cursors.DictCursor)
         try:
@@ -277,11 +327,11 @@ class Client:
         finally:
             connection.close()
 
-        host = self.machine_dict[machine_id][0]
-        port = self.machine_dict[machine_id][1]
+        host = self.__machine_dict[machine_id][0]
+        port = self.__machine_dict[machine_id][1]
         proxy = xmlrpc.client.ServerProxy("http://" + host + ":" + str(port) + "/")
         with open(local_path, "wb") as handle:
-            handle.write(proxy.get(file_id).data)
+            handle.write(proxy.get(file_id, self.__server_db).data)
 
         self.__level = original_level
         self.__parent = original_parent
@@ -291,10 +341,10 @@ class Client:
 
     def __ls(self):
         content = []
-        connection = pymysql.connect(host=self.server_host,
-                                     user=self.server_user,
-                                     password=self.server_pass,
-                                     db=self.server_db,
+        connection = pymysql.connect(host=self.__server_host,
+                                     user=self.__server_user,
+                                     password=self.__server_pass,
+                                     db=self.__server_db,
                                      charset='utf8mb4',
                                      cursorclass=pymysql.cursors.DictCursor)
         try:
@@ -347,10 +397,10 @@ class Client:
                         self.__current_dir_address = 'home/'
                 else:
                     # connect to the database
-                    connection = pymysql.connect(host=self.server_host,
-                                                 user=self.server_user,
-                                                 password=self.server_pass,
-                                                 db=self.server_db,
+                    connection = pymysql.connect(host=self.__server_host,
+                                                 user=self.__server_user,
+                                                 password=self.__server_pass,
+                                                 db=self.__server_db,
                                                  charset='utf8mb4',
                                                  cursorclass=pymysql.cursors.DictCursor)
                     level = self.__level
@@ -386,10 +436,10 @@ class Client:
                 temp_dir_list = directory.split("/")
 
                 # connect to the database
-                connection = pymysql.connect(host=self.server_host,
-                                             user=self.server_user,
-                                             password=self.server_pass,
-                                             db=self.server_db,
+                connection = pymysql.connect(host=self.__server_host,
+                                             user=self.__server_user,
+                                             password=self.__server_pass,
+                                             db=self.__server_db,
                                              charset='utf8mb4',
                                              cursorclass=pymysql.cursors.DictCursor)
                 level = self.__level

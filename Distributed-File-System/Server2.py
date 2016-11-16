@@ -1,9 +1,11 @@
 from xmlrpc.server import SimpleXMLRPCServer
-import xmlrpc.client, sys, os, pymysql
+import  pymysql, warnings
 
+# ----------------------------------------------------------------------------------------------------------------------
 HOST = "0.0.0.0"
 PORT = 6002
 ID = 2
+# ----------------------------------------------------------------------------------------------------------------------
 server = SimpleXMLRPCServer((HOST, PORT))
 server.register_introspection_functions()
 
@@ -11,17 +13,49 @@ server.register_introspection_functions()
 class RemoteFunctions:
 
     def __init__(self):
-        self.id = ID
+        self.__id = ID
+        self.__server_host = HOST
+        self.__server_user = 'root'
+        self.__server_pass = ''
 
     def get_id(self):
-        return self.id
+        return self.__id
 
-    def put(self, binary_data, file_id, file_name, file_size):
+    def format(self, server_db, locally):
+        if locally != "locally":
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                connection = pymysql.connect(host=self.__server_host, user=self.__server_user, password=self.__server_pass)
+                with connection.cursor() as cursor:
+                    sql = "DROP DATABASE IF EXISTS "
+                    sql = sql + server_db
+                    cursor.execute(sql)
+
+                    sql = "CREATE DATABASE "
+                    sql = sql + server_db
+                    cursor.execute(sql)
+                connection.commit()
+
+        connection = pymysql.connect(host=self.__server_host,
+                                     user=self.__server_user,
+                                     password=self.__server_pass,
+                                     db=server_db,
+                                     charset='utf8mb4',
+                                     cursorclass=pymysql.cursors.DictCursor)
+        with connection.cursor() as cursor:
+            sql = "CREATE TABLE machine_%s (`file_id` INT NOT NULL PRIMARY KEY," \
+                  " `file_name` VARCHAR(30) NOT NULL, `file` BLOB, `file_size` INT NOT NULL)"
+            cursor.execute(sql, (ID, ))
+
+        connection.commit()
+        return "Done"
+
+    def put(self, binary_data, file_id, file_name, file_size, server_db):
         # connect to the databse
-        connection = pymysql.connect(host='localhost',
-                                     user='root',
-                                     password='',
-                                     db='dfs',
+        connection = pymysql.connect(host=self.__server_host,
+                                     user=self.__server_user,
+                                     password=self.__server_pass,
+                                     db=server_db,
                                      charset='utf8mb4',
                                      cursorclass=pymysql.cursors.DictCursor)
         try:
@@ -38,12 +72,12 @@ class RemoteFunctions:
 
         return "Done"
 
-    def get(self, file_id):
+    def get(self, file_id, server_db):
         # connect to the databse
-        connection = pymysql.connect(host='localhost',
-                                     user='root',
-                                     password='',
-                                     db='dfs',
+        connection = pymysql.connect(host=self.__server_host,
+                                     user=self.__server_user,
+                                     password=self.__server_pass,
+                                     db=server_db,
                                      charset='utf8mb4',
                                      cursorclass=pymysql.cursors.DictCursor)
         try:
@@ -58,11 +92,11 @@ class RemoteFunctions:
 
         return file
 
-    def remove(self, file_id):
-        connection = pymysql.connect(host='localhost',
-                                     user='root',
-                                     password='',
-                                     db='dfs',
+    def remove(self, file_id, server_db):
+        connection = pymysql.connect(host=self.__server_host,
+                                     user=self.__server_user,
+                                     password=self.__server_pass,
+                                     db=server_db,
                                      charset='utf8mb4',
                                      cursorclass=pymysql.cursors.DictCursor)
         try:
