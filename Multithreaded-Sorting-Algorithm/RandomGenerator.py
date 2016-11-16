@@ -1,16 +1,17 @@
 import random
 
+
 def main():
-    howMany = 0
+    how_many = 0
     numbers = []
 
+    how_many = int(input('How many numbers would you like to generate?: '))
 
-    howMany = int(input('How many numbers would you like to generate?: '))
+    infile = open('test_bl.txt', 'w')
 
-    infile = open ('test_th.txt', 'w')
-
-    for n in range(1,howMany+1):
-        numbers.append(random.randint(1,1000))
+    for n in range(1, how_many+1):
+        numbers.append(random.randint(1, 1000000))
     infile.write('\n'.join(map(str, numbers)))
     infile.close()
+
 main()
