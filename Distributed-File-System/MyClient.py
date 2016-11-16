@@ -15,8 +15,19 @@ class Client:
         self.__parent = 'home'
         self.__current_dir = 'home'
         self.__command_dict = {"mkdir": Client.__mkdir, "rm": Client.__rm, "cp": Client.__cp, "put": Client.__put,
-                             "get": Client.__get, "ls": Client.__ls, "help": Client.__help, "-format": Client.__format,
+                             "get": Client.__get, "ls": Client.__ls, "-help": Client.__help, "-format": Client.__format,
                              "cd": Client.__cd, "": Client.empty}
+        self.__help_dict = ["mkdir <directory>                                   creates a distributed directory",
+                            "rm <file_path>                                      remove a specific file by specifying a path to the file",
+                            "rm -r <directory>                                   removes a directory",
+                            "put <local_file_path> <distributed_file_path>       writes a file from local path to distributed path",
+                            "get <distributed_file_path> <local_file_path>       reads a file from distributed path and writes it to local path",
+                            "ls                                                  directories and files are listed",
+                            "cd                                                  changes current distributed directory",
+                            "-format                                             formats your client and server machine servers",
+                            "-format locally                                     assumes client and servers are sharing a database and formats the shared database",
+                            "-help                                               returns a usage output"
+                            ]
         self.__current_dir_address = "home/"
 
     def __format(self, locally=None):
@@ -73,7 +84,7 @@ class Client:
 
         connection.commit()
 
-        print("Your client and servers have been formatted")
+        print("Formatting completed")
 
     def get_current_directory(self):
         return self.__current_dir
@@ -262,6 +273,28 @@ class Client:
         if distributed_path != "":
             self.__cd(distributed_path)
 
+        try:
+            # make sure there is no name conflict between file name and other directory names
+            connection = pymysql.connect(host=self.__server_host,
+                                         user=self.__server_user,
+                                         password=self.__server_pass,
+                                         db=self.__server_db,
+                                         charset='utf8mb4',
+                                         cursorclass=pymysql.cursors.DictCursor)
+            cursor = connection.cursor()
+            sql = "SELECT * FROM `dir_map` WHERE dir_name = %s AND `address` = %s"
+            cursor.execute(sql, (file_name, self.__current_dir_address))
+            row = cursor.fetchone()
+            if row is not None:
+                self.__level = original_level
+                self.__parent = original_parent
+                self.__current_dir = original_dir_name
+                self.__current_dir_address = original_dir_address
+                print("Invalid file name")
+                return None
+        finally:
+            connection.close()
+
         file_size = os.path.getsize(local_path)
         host = self.__machine_dict[machine_id][0]
         port = self.__machine_dict[machine_id][1]
@@ -340,7 +373,8 @@ class Client:
         print("Done")
 
     def __ls(self):
-        content = []
+        dir_content = []
+        file_content = []
         connection = pymysql.connect(host=self.__server_host,
                                      user=self.__server_user,
                                      password=self.__server_pass,
@@ -353,25 +387,31 @@ class Client:
                 cursor.execute(sql, (self.__current_dir_address,))
                 row = cursor.fetchone()
                 while row is not None:
-                    content.append(row['dir_name'])
+                    dir_content.append(row['dir_name'])
                     row = cursor.fetchone()
 
                 sql = "SELECT `file_name` FROM `file_map` WHERE `address` = %s"
                 cursor.execute(sql, (self.__current_dir_address,))
                 row = cursor.fetchone()
                 while row is not None:
-                    content.append(row['file_name'])
+                    file_content.append(row['file_name'])
                     row = cursor.fetchone()
         finally:
             connection.close()
 
-        for item in content:
+        if len(dir_content) > 0:
+            print("Directories: ")
+        for item in dir_content:
+            print(item)
+
+        if len(file_content) > 0:
+            print("Files: ")
+        for item in file_content:
             print(item)
 
     def __help(self):
-        for key in self.__command_dict:
-            print(key)
-        # needs more work, perhaps read a help.text file to the user
+        for line in self.__help_dict:
+            print(line)
 
     def __cd(self, directory=None):
         if directory == None:

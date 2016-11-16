@@ -2,15 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="24856305-7c17-4ddd-9b4b-508aedc80a8d" name="Default" comment="">
-      <change type="MOVED" beforePath="$PROJECT_DIR$/Distributed-File-System/small_numbers11.txt" afterPath="$PROJECT_DIR$/Distributed-File-System/small_numbers.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Distributed-File-System/MyClient.py" afterPath="$PROJECT_DIR$/Distributed-File-System/MyClient.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Distributed-File-System/Server1.py" afterPath="$PROJECT_DIR$/Distributed-File-System/Server1.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Distributed-File-System/Server2.py" afterPath="$PROJECT_DIR$/Distributed-File-System/Server2.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Distributed-File-System/Server3.py" afterPath="$PROJECT_DIR$/Distributed-File-System/Server3.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Message-Queuing-System/Client.py" afterPath="$PROJECT_DIR$/Message-Queuing-System/Client.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Multithreaded-Sorting-Algorithm/MainMachine.py" afterPath="$PROJECT_DIR$/Multithreaded-Sorting-Algorithm/MainMachine.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/RPC/Client.py" afterPath="$PROJECT_DIR$/RPC/Client.py" />
     </list>
     <ignored path="Distributed-Systems.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -34,11 +27,11 @@
       <file leaf-file-name="MyClient.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Distributed-File-System/MyClient.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.59778595">
-              <caret line="18" column="65" selection-start-line="18" selection-start-column="65" selection-end-line="18" selection-end-column="65" />
+            <state vertical-scroll-proportion="0.7319778">
+              <caret line="86" column="35" selection-start-line="86" selection-start-column="35" selection-end-line="86" selection-end-column="35" />
               <folding>
-                <element signature="e#3948#5573#0" expanded="false" />
-                <element signature="e#5633#10199#0" expanded="false" />
+                <element signature="e#16553#18349#0" expanded="false" />
+                <element signature="e#19943#24466#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -529,7 +522,13 @@
       <option name="project" value="LOCAL" />
       <updated>1479269485396</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Added format functionality.">
+      <created>1479309500580</created>
+      <option name="number" value="00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1479309500580</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -543,7 +542,7 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32857144" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32857144" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32987013" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22467533" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22597402" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -572,11 +571,12 @@
     <MESSAGE value="rm and ls functions are now working properly. Fixed some issues." />
     <MESSAGE value="Fixed some bugs. Made some minor changes." />
     <MESSAGE value="Fixed a an important bug." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed a an important bug." />
+    <MESSAGE value="Added format functionality." />
+    <option name="LAST_COMMIT_MESSAGE" value="Added format functionality." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="54" />
+      <option name="time" value="55" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -938,11 +938,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Distributed-File-System/MyClient.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.59778595">
-          <caret line="18" column="65" selection-start-line="18" selection-start-column="65" selection-end-line="18" selection-end-column="65" />
+        <state vertical-scroll-proportion="0.7319778">
+          <caret line="86" column="35" selection-start-line="86" selection-start-column="35" selection-end-line="86" selection-end-column="35" />
           <folding>
-            <element signature="e#3948#5573#0" expanded="false" />
-            <element signature="e#5633#10199#0" expanded="false" />
+            <element signature="e#16553#18349#0" expanded="false" />
+            <element signature="e#19943#24466#0" expanded="false" />
           </folding>
         </state>
       </provider>
