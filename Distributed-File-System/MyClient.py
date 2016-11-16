@@ -25,7 +25,7 @@ class Client:
 
         print("Your client and servers have been formatted")
 
-    def get_current_dir(self):
+    def get_current_directory(self):
         return self.__current_dir
 
     def __mkdir(self, directory):
@@ -69,7 +69,7 @@ class Client:
         original_level = self.__level
         original_parent = self.__parent
         original_dir_name = self.__current_dir
-        original_dir_name = self.__current_dir_address
+        original_dir_address = self.__current_dir_address
 
         if path_or_r is None:
             pass
@@ -159,7 +159,7 @@ class Client:
         self.__level = original_level
         self.__parent = original_parent
         self.__current_dir = original_dir_name
-        self.__current_dir_address = original_dir_name
+        self.__current_dir_address = original_dir_address
 
         print("Done")
 
@@ -430,7 +430,7 @@ class Client:
 def main():
     machine = Client()
     while 1 == 1:
-        current_directory_string = machine.get_current_dir() + " $"
+        current_directory_string = machine.get_current_directory() + " $"
     # try:
         command = input("Type your command:" + current_directory_string).strip()
         if command == "exit":
