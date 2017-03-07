@@ -1,4 +1,4 @@
-# Project Name
+# Distributed Sorting Algorithm Using RabbitMQ Message Queuing System
 
 This project implements a multi-threaded sorting algorithm using RabbitMQ on Python. The goal of the project is to create a distributed and scalable sorting algorithm.
 ## Installation
